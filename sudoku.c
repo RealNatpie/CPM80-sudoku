@@ -523,7 +523,7 @@ mlp:
     /* display current solution test ever 10000 cycles*/
     if(dspcnt==10000)
     {
-        sprintf(newS,"%d solutions tested\n",sltst);
+        sprintf(newS,"%lu solutions tested\n",sltst);
         sbPrint(newS,1);
         dspcnt = 0;
     }
@@ -581,7 +581,7 @@ prlp:
     goto idxinc;
 slvd:
     sltst++;
-    sprintf(newS,"Solution# %d\n",sltst);
+    sprintf(newS,"Solution# %lu\n",sltst);
     sbPrint(newS,2);
     return 1;
 fld:
