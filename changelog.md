@@ -2,6 +2,7 @@
 April 5, 2025
 
 Bugfixes and Updates
+* Fixed overflow bug on solution test counter.
 
 * Updated the simplify function to allow new algorithms to be added more easily.
 
