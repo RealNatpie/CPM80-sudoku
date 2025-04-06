@@ -8,7 +8,8 @@ void inputPuz();
 void drawPuzzle();
 void findBlanks();
 void simplify();
-void fillones();
+int nakedSingle();
+int hiddenSingle();
 void showComp();
 void optOrder();
 
@@ -192,7 +193,7 @@ void splash()
     setCursorXY(1,24);
     printf("Sudoku Solver by Nathanael Nunes\n");
     setCursorXY(2,28);
-    printf("V1.1 build April 04 2025\n");
+    printf("V1.2 build April 05 2025\n");
 
 }
 /* void initLookup()*/
@@ -394,16 +395,10 @@ void findBlanks()
         }
     }
 }
-/* void simplify()*/
-/* simplifies the puzzle by removing possiblities*/
-/* if a blank has only one possiblity it is filled in*/
-/* it will repeat until no more simplification is possible*/
-/* it will also remove possiblities from other blanks*/
-void simplify()
+void findPosible()
 {
-    int i, vals;
-stlp:
-    for (i = 0; i < blanks[0]; i++)
+    int i,vals;
+  for (i = 0; i < blanks[0]; i++)
     {
         posBlanks[i][0] = 0;
         for (vals = 1; vals < 10; vals++)
@@ -415,37 +410,139 @@ stlp:
             }
         }
     }
+}
+
+/* void simplify()*/
+/* simplifies the puzzle by removing possiblities*/
+/* if a blank has only one possiblity it is filled in*/
+/* it will repeat until no more simplification is possible*/
+/* it will also remove possiblities from other blanks*/
+void simplify()
+{
+    int i, vals;
+stlp:
+  findPosible();
     vals = 0;
-    for (i = 0; i < blanks[0]; i++)
-    {
-        if (posBlanks[i][0] == 1)
-        {
-            vals = 1;
-            break;
-        }
-    }
+    vals += nakedSingle();
+    vals += hiddenSingle();
+    
     showComp();
     setCursorXY(4,1);
     drawPuzzle(0);
-    if (vals == 1)
+    if (vals !=0)
     {
-        fillones();
         findBlanks();
         goto stlp;
     }
 }
-/* void fillones()*/
+/* void nakedSingle()*/
 /* fills in the blanks with only one possiblity*/
-void fillones()
+int nakedSingle()
 {
-    int i;
+    int i,hit;
+    hit = 0;
     for (i = 0; i < blanks[0]; i++)
     {
         if (posBlanks[i][0] == 1)
         {
             puzzle[blanks[i + 1]] = posBlanks[i][1];
+            hit = 1;
         }
     }
+    if(hit!=0)
+    {
+        findBlanks();
+        findPosible();
+    }
+    return hit;
+}
+int hiddenSingle()
+{
+    int hit, row, col, cell, sell,val;
+    int poscnt[9];
+    int pos[9];
+    hit = 0;
+    for (row = 0; row < 9; row++)
+    {
+        for(cell = 0; cell < 9;cell++)
+        {
+            if(puzzle[rowAdds[row][cell]]==0)
+            {
+                for(val=1;val<10;val++)
+                {
+                    if(testAdr(rowAdds[row][cell],val)>0)
+                    {
+                        poscnt[val-1]++;
+                        pos[val-1] = rowAdds[row][cell];
+                    }
+                }
+            }
+        }
+        for(cell=0;cell<9;cell++)
+        {
+            if(poscnt[cell]==1)
+            {
+                puzzle[pos[cell]] = cell+1;
+                hit = 1;
+            }
+        }
+    }
+    for(col=0;col<9;col++)
+    {
+        for(cell=0;cell<9;cell++)
+        {
+            if(puzzle[colAdds[col][cell]]==0)
+            {
+                for(val=1;val<10;val++)
+                {
+                    if(testAdr(colAdds[col][cell],val)>0)
+                    {
+                        poscnt[val-1]++;
+                        pos[val-1] = colAdds[col][cell];
+                    }
+                }
+            }
+        }
+        for(cell=0;cell<9;cell++)
+        {
+            if(poscnt[cell]==1)
+            {
+                puzzle[pos[cell]] = cell+1;
+                hit = 1;
+            }
+        }
+    }
+    for(sell=0;sell<9;sell++)
+    {
+        for(cell=0;cell<9;cell++)
+        {
+            if(puzzle[celAdds[sell][cell]]==0)
+            {
+                for(val=1;val<10;val++)
+                {
+                    if(testAdr(celAdds[sell][cell],val)>0)
+                    {
+                        poscnt[val-1]++;
+                        pos[val-1] = celAdds[sell][cell];
+                    }
+                }
+            }
+        }
+        for(cell=0;cell<9;cell++)
+        {
+            if(poscnt[cell]==1)
+            {
+                puzzle[pos[cell]] = cell+1;
+                hit = 1;
+            }
+        }
+    }
+    if(hit!=0)
+    {
+        findBlanks();
+        findPosible();
+    }
+    return hit;
 }
 /* void showComp()*/
 /* shows the complexity of the puzzle*/
