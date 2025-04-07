@@ -8,12 +8,12 @@ void inputPuz();
 void drawPuzzle();
 void findBlanks();
 void simplify();
-int nakedSingle();
-int hiddenSingle();
+char nakedSingle();
+char hiddenSingle();
 void showComp();
 void optOrder();
 
-int testAdr();
+char testAdr();
 /* void setCursorXY(int X, int Y)*/
 /* sets the cursor to X,Y position*/
 /* X and Y are 1 based*/
@@ -39,24 +39,24 @@ char getKeypress();
 void sbPrint();
 /* puzzle storage*/
 /* modified during solver use oringinal blanks stored in blanks*/
-int puzzle[81];
+char puzzle[81];
 /*blanks[0] = number of blanks*/
 /*blanks[n] = address of blanks in puzzle[]*/
-int blanks[82];
+char blanks[82];
 /*lookup tables*/
-int colAdds[9][9];
-int rowAdds[9][9];
-int celAdds[9][9];
-int AddCol[81];
-int AddRow[81];
-int AddCel[81];
+char colAdds[9][9];
+char rowAdds[9][9];
+char celAdds[9][9];
+char AddCol[81];
+char AddRow[81];
+char AddCel[81];
 /*posBlanks[n][0] = number of possiblities*/
 /*posBlanks[n][1] = first possiblity*/
 /* n = blanks index number */
-int posBlanks[81][10];
+char posBlanks[81][10];
 /*slvOrder[n] = index of blanks[]*/
 /* used to optimize order in witch they blanks are tested*/
-int slvOrder[81];
+char slvOrder[81];
 /*swX is the X origin for the side window*/
 /*swY is the Y origin for the side window*/
 /*swI is used by the function to point to the current line*/
@@ -200,7 +200,7 @@ void splash()
 /* generates the lookup tables for the puzzle*/
 void initLookup()
 {
-    int i, idx, startRow, startCol, cellIndex;
+    char i, idx, startRow, startCol, cellIndex;
     printf("Generateing Lookup tables.\n");
     for (i = 0; i < 81; i++)
     {
@@ -226,9 +226,9 @@ void initLookup()
 /* int testAdr(int ad, intv)*/
 /* test if value v can be placed in address ad*/
 /* returns 1 if v can be placed*/
-int testAdr(ad, v)
-int ad;
-int v;
+char testAdr(ad, v)
+char ad;
+char v;
 {
     int i;
     for (i = 0; i < 9; i++)
@@ -247,7 +247,7 @@ int v;
 void inputPuz()
 {
     char c;
-    int i;
+    char i;
 
 /* Draw the puzzle gird*/
     setCursorXY(4,1);
@@ -384,7 +384,7 @@ char getKeypress()
 /* blanks[n] = address of blanks in puzzle[]*/
 void findBlanks()
 {
-    int i;
+    char i;
     blanks[0] = 0;
     for (i = 0; i < 81; i++)
     {
@@ -397,7 +397,7 @@ void findBlanks()
 }
 void findPosible()
 {
-    int i,vals;
+    char i,vals;
   for (i = 0; i < blanks[0]; i++)
     {
         posBlanks[i][0] = 0;
@@ -419,7 +419,7 @@ void findPosible()
 /* it will also remove possiblities from other blanks*/
 void simplify()
 {
-    int i, vals;
+    char i, vals;
 stlp:
   findPosible();
     vals = 0;
@@ -437,9 +437,9 @@ stlp:
 }
 /* void nakedSingle()*/
 /* fills in the blanks with only one possiblity*/
-int nakedSingle()
+char nakedSingle()
 {
-    int i,hit;
+    char i,hit;
     hit = 0;
     for (i = 0; i < blanks[0]; i++)
     {
@@ -456,20 +456,22 @@ int nakedSingle()
     }
     return hit;
 }
-int hiddenSingle()
+char hiddenSingle()
 {
-    int hit, row, col, cell, sell,val;
-    int poscnt[9];
-    int pos[9];
+    char hit, row, col, cell, sell,val;
+    char poscnt[9];
+    char pos[9];
     hit = 0;
     for (row = 0; row < 9; row++)
     {
+        setmem(poscnt,9,0);
         for(cell = 0; cell < 9;cell++)
         {
             if(puzzle[rowAdds[row][cell]]==0)
             {
                 for(val=1;val<10;val++)
                 {
+                    
                     if(testAdr(rowAdds[row][cell],val)>0)
                     {
                         poscnt[val-1]++;
@@ -489,6 +491,7 @@ int hiddenSingle()
     }
     for(col=0;col<9;col++)
     {
+        setmem(poscnt,9,0);
         for(cell=0;cell<9;cell++)
         {
             if(puzzle[colAdds[col][cell]]==0)
@@ -514,6 +517,7 @@ int hiddenSingle()
     }
     for(sell=0;sell<9;sell++)
     {
+        setmem(poscnt,9,0);
         for(cell=0;cell<9;cell++)
         {
             if(puzzle[celAdds[sell][cell]]==0)
@@ -592,14 +596,14 @@ int solve()
     /* sidx is the index of the current blank being tested*/
     /* endidx is the total number of blanks to test*/
     /* idxPnt is the index of the current blank in the slvOrder*/
-    int sidx, cadd, endidx,idxPnt;
+    char sidx, cadd, endidx,idxPnt;
     /* valpnt is the index of the current possiblity being tested*/
-    int valpnt[81];
-    int valptEnd;
+    char valpnt[81];
+    char valptEnd;
     int dspcnt;
     long sltst;
     /* tarval is the temprary address value*/
-    int tarval;
+    char tarval;
     /* dspcnt counts the loop cycles for status messages*/
     dspcnt = 0;
     /* sltst counts the number of solutions tested*/
