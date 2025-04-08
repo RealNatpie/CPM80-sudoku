@@ -12,7 +12,8 @@ char nakedSingle();
 char hiddenSingle();
 void showComp();
 void optOrder();
-
+void fillBlank();
+void adrFillBlank();
 char testAdr();
 /* void setCursorXY(int X, int Y)*/
 /* sets the cursor to X,Y position*/
@@ -43,6 +44,7 @@ char puzzle[81];
 /*blanks[0] = number of blanks*/
 /*blanks[n] = address of blanks in puzzle[]*/
 char blanks[82];
+char schpad[82];
 /*lookup tables*/
 char colAdds[9][9];
 char rowAdds[9][9];
@@ -88,8 +90,8 @@ void main()
     inputPuz();
     /*Clear sidwindow of input instuctions*/
     swClear();
-    /*creat inital blanks list for presolve simplification*/
-    findBlanks();
+    
+    
     swPrint("Simplifying the puzlle solutions");
     simplify();
     /*Detect early solve*/
@@ -411,6 +413,25 @@ void findPosible()
         }
     }
 }
+void trimPosible()
+{
+    char i,k,vals;
+    for (i = 0; i < blanks[0]; i++)
+    {
+        for (k = 1; k < 10; k++)
+        {
+            vals = posBlanks[i][k];
+            if (vals != 0)
+            {
+                if (testAdr(blanks[i + 1], vals) == 0)
+                {
+                    posBlanks[i][k] = 0;
+                    posBlanks[i][0]--;
+                }
+            }
+        }
+    }
+}
 
 /* void simplify()*/
 /* simplifies the puzzle by removing possiblities*/
@@ -420,8 +441,10 @@ void findPosible()
 void simplify()
 {
     char i, vals;
+    findBlanks();
+    findPosible();
 stlp:
-  findPosible();
+  /*findPosible(); */
     vals = 0;
     vals += nakedSingle();
     vals += hiddenSingle();
@@ -431,8 +454,38 @@ stlp:
     drawPuzzle(0);
     if (vals !=0)
     {
-        findBlanks();
+        /*findBlanks();*/
         goto stlp;
+    }
+}
+void fillBlank(index, value)
+char index,value;
+{
+    char addr,i,j;
+    addr = blanks[index + 1];
+    puzzle[addr] = value;
+    for(i=index;i<blanks[0];i++)
+    {
+        blanks[i+1] = blanks[i+2];
+        for (j=0;j<10;j++)
+        {
+            posBlanks[i][j] = posBlanks[i+1][j];
+        }
+    }
+    blanks[0]--;
+
+}
+void adrFillBlank(adr, value)
+char adr, value;
+{
+    char i;
+    for (i = 0; i < blanks[0]; i++)
+    {
+        if (blanks[i + 1] == adr)
+        {
+            fillBlank(i, value);
+            break;
+        }
     }
 }
 /* void nakedSingle()*/
@@ -445,15 +498,19 @@ char nakedSingle()
     {
         if (posBlanks[i][0] == 1)
         {
-            puzzle[blanks[i + 1]] = posBlanks[i][1];
+            /*puzzle[blanks[i + 1]] = posBlanks[i][1];*/
+            fillBlank(i,posBlanks[i][1]);
+            i=0;
             hit = 1;
         }
     }
+    /*
     if(hit!=0)
     {
         findBlanks();
         findPosible();
     }
+    */
     return hit;
 }
 char hiddenSingle()
@@ -484,7 +541,8 @@ char hiddenSingle()
         {
             if(poscnt[cell]==1)
             {
-                puzzle[pos[cell]] = cell+1;
+                /*puzzle[pos[cell]] = cell+1;*/
+                adrFillBlank(pos[cell],cell+1);
                 hit = 1;
             }
         }
@@ -510,7 +568,8 @@ char hiddenSingle()
         {
             if(poscnt[cell]==1)
             {
-                puzzle[pos[cell]] = cell+1;
+                /*puzzle[pos[cell]] = cell+1;*/
+                adrFillBlank(pos[cell],cell+1);
                 hit = 1;
             }
         }
@@ -536,16 +595,17 @@ char hiddenSingle()
         {
             if(poscnt[cell]==1)
             {
-                puzzle[pos[cell]] = cell+1;
+                /*puzzle[pos[cell]] = cell+1;*/
+                adrFillBlank(pos[cell],cell+1);
                 hit = 1;
             }
         }
     }
-    if(hit!=0)
+    /*if(hit!=0)
     {
         findBlanks();
         findPosible();
-    }
+    }*/
     return hit;
 }
 /* void showComp()*/
