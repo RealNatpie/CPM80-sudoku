@@ -4,16 +4,20 @@
 void splash();
 void initLookup();
 void inputPuz();
-
 void drawPuzzle();
 void findBlanks();
 void simplify();
 char nakedSingle();
 char hiddenSingle();
+char nakedPair();
 void showComp();
 void optOrder();
 void fillBlank();
 void adrFillBlank();
+char posPurge();
+char rowPurge();
+char colPurge();
+char celPurge();
 char testAdr();
 /* void setCursorXY(int X, int Y)*/
 /* sets the cursor to X,Y position*/
@@ -52,6 +56,9 @@ char celAdds[9][9];
 char AddCol[81];
 char AddRow[81];
 char AddCel[81];
+char colIndex[9][10];
+char rowIndex[9][10];
+char celIndex[9][10];
 /*posBlanks[n][0] = number of possiblities*/
 /*posBlanks[n][1] = first possiblity*/
 /* n = blanks index number */
@@ -195,7 +202,7 @@ void splash()
     setCursorXY(1,24);
     printf("Sudoku Solver by Nathanael Nunes\n");
     setCursorXY(2,28);
-    printf("V1.2 build April 05 2025\n");
+    printf("V1.2 build April 08 2025\n");
 
 }
 /* void initLookup()*/
@@ -397,6 +404,36 @@ void findBlanks()
         }
     }
 }
+/* void findIndex*/
+/* finds the index of the blanks in the puzzle*/
+/* stores the index of the blanks in colIndex[], rowIndex[], celIndex[]*/
+/* colIndex[n][0] = number of blanks in column n*/
+/* rowIndex[n][0] = number of blanks in row n*/
+/* celIndex[n][0] = number of blanks in cell n*/
+/* colIndex[n][i] = index of the i-th blank in column n*/
+/* rowIndex[n][i] = index of the i-th blank in row n*/
+/* celIndex[n][i] = index of the i-th blank in cell n*/
+void findIndex()
+{
+    int i;
+    char iaddr;
+    /* clear the index arrays*/
+    for(i=0;i<9;i++)
+    {
+        colIndex[i][0] = 0;
+        rowIndex[i][0] = 0;
+        celIndex[i][0] = 0;
+    }
+    /* fill the index arrays*/
+
+    for(i=1;i<=blanks[0];i++)
+    {
+        iaddr = blanks[i];
+        colIndex[AddCol[iaddr]][++colIndex[AddCol[iaddr]][0]] = i;
+        rowIndex[AddRow[iaddr]][++rowIndex[AddRow[iaddr]][0]] = i;
+        celIndex[AddCel[iaddr]][++celIndex[AddCel[iaddr]][0]] = i;
+    }
+}
 void findPosible()
 {
     char i,vals;
@@ -412,6 +449,7 @@ void findPosible()
             }
         }
     }
+    findIndex();
 }
 void trimPosible()
 {
@@ -448,6 +486,7 @@ stlp:
     vals = 0;
     vals += nakedSingle();
     vals += hiddenSingle();
+    vals += nakedPair();
     
     showComp();
     setCursorXY(4,1);
@@ -462,18 +501,23 @@ void fillBlank(index, value)
 char index,value;
 {
     char addr,i,j;
+    /* fill in the blank with the value*/
     addr = blanks[index + 1];
     puzzle[addr] = value;
+    /* remove the blank from the list*/
     for(i=index;i<blanks[0];i++)
     {
         blanks[i+1] = blanks[i+2];
+        /* move the blanks down*/
         for (j=0;j<10;j++)
         {
             posBlanks[i][j] = posBlanks[i+1][j];
         }
     }
-    blanks[0]--;
+    /* remove the blank from the index*/
 
+    blanks[0]--;
+    findIndex();
 }
 void adrFillBlank(adr, value)
 char adr, value;
@@ -499,6 +543,8 @@ char nakedSingle()
         if (posBlanks[i][0] == 1)
         {
             /*puzzle[blanks[i + 1]] = posBlanks[i][1];*/
+            sprintf(newS, "Naked single Row %d Col %d Value %d\n", AddRow[blanks[i]] + 1, AddCol[blanks[i]] , posBlanks[i][1]);
+            sbPrint(newS,1);
             fillBlank(i,posBlanks[i][1]);
             i=0;
             hit = 1;
@@ -542,6 +588,8 @@ char hiddenSingle()
             if(poscnt[cell]==1)
             {
                 /*puzzle[pos[cell]] = cell+1;*/
+                sprintf(newS,"Hidden single Row %d Col %d Value %d\n",row,cell,poscnt[cell]);
+                sbPrint(newS,2);
                 adrFillBlank(pos[cell],cell+1);
                 hit = 1;
             }
@@ -606,6 +654,210 @@ char hiddenSingle()
         findBlanks();
         findPosible();
     }*/
+    return hit;
+}
+/* char posPurge()*/
+/* purges the possiblity val from the blank pidex*/
+/* it will remove the possiblity from the blank*/
+/* it will return 1 if the possiblity was removed*/
+/* it will return 0 if the possiblity was not removed*/
+/* it will also remove the blank from the index*/
+char posPurge(pidex, val)
+char pidex,val;
+{
+    char i,j;
+    /* check if the blank is empty*/
+    if(posBlanks[pidex][0]==0)
+    {
+        return 0;
+    }
+    /* check if the possiblity is in the blank*/
+    for(i=1;i<=posBlanks[pidex][0];i++)
+    {
+        /* check if the possiblity is in the blank*/
+        if(posBlanks[pidex][i]==val)
+        {
+            /* remove the possiblity from the blank*/
+            for(j=i;j<posBlanks[pidex][0];j++)
+            {
+                /* move the possiblities down*/
+                posBlanks[pidex][j] = posBlanks[pidex][j+1];
+            }
+         
+            /* decrease possiblities count*/
+            posBlanks[pidex][0]--;
+            return 1;
+        }
+    }
+    return 0;
+}
+/* char rowPurge(char row, char exempt1, char exempt2, char val1, char val2)*/
+/* purges the possiblity val from the row*/
+/* it will remove the possiblity from the row*/
+/* it will return 1 if the possiblity was removed*/
+/* it will return 0 if the possiblity was not removed*/
+char rowPurge(row, exempt1, exempt2, val1, val2)
+char row, exempt1, exempt2, val1, val2;
+{
+    char i,j,hit,ridx;
+    /* check if the row is empty*/
+    if(rowIndex[row][0]==0)
+    {
+        return 0;
+    }
+    hit = 0;
+    /* check if the possiblity is in the row*/
+    for(i=0;i<rowIndex[row][0];i++)
+    {
+        ridx = rowIndex[row][i];
+        /* check if the possiblity is in the row*/
+        if(ridx!=exempt1 && ridx!=exempt2)
+        {
+            /* remove the possiblity from the row*/
+            hit += posPurge(ridx,val1);
+            hit += posPurge(ridx,val2);
+        }
+    }
+    return hit;
+}
+char colPurge(col, exempt1, exempt2, val1, val2)
+char col, exempt1, exempt2, val1, val2;
+{
+    char i,j,hit,cidx;
+    hit = 0;
+    for(i=0;i<colIndex[col][0];i++)
+    {
+        cidx = colIndex[col][i];
+        if(cidx!=exempt1 && cidx!=exempt2)
+        {
+           hit += posPurge(cidx,val1);
+           hit +=posPurge(cidx,val2);
+        }
+    }
+    return hit;
+}
+char celPurge(cel, exempt1, exempt2, val1, val2)
+char cel, exempt1, exempt2, val1, val2;
+{
+    char i,j,hit,cidx;
+    hit = 0;
+    for(i=0;i<celIndex[cel][0];i++)
+    {
+        cidx = celIndex[cel][i];
+
+        if(cidx!=exempt1 && cidx!=exempt2)
+        {
+           hit += posPurge(cidx,val1);
+           hit += posPurge(cidx,val2);
+        }
+    }
+    return hit;
+}
+
+char nakedPair()
+{
+    char i,j,k;
+    char pair[2];
+    char hit;
+    char pindex[2];
+    char findCount;
+    findCount = 0;
+    hit = 0;
+    /*Start with rows*/
+    for(i=0;i<9;i++)
+    {
+        for(j=0;j<rowIndex[i][0];j++)
+        {
+            if(posBlanks[rowIndex[i][j]][0]==2)
+            {
+                pair[0] = posBlanks[rowIndex[i][j]][1];
+                pair[1] = posBlanks[rowIndex[i][j]][2];
+                pindex[0] = rowIndex[i][j];
+                for(k=j+1;k<rowIndex[i][0];k++)
+                {
+                    
+                        if(posBlanks[rowIndex[i][k]][0]==2 && posBlanks[rowIndex[i][k]][1]==pair[0] && posBlanks[rowIndex[i][k]][2]==pair[1])
+                        {
+                          pindex[1] = rowIndex[i][k];
+                          hit += rowPurge(i,pindex[0],pindex[1],pair[0],pair[1]);
+                          if(hit>0)
+                          {
+                          sprintf(newS,"%d Row %d Pair %d,%d\n",++findCount,i+1,pair[0],pair[1]);
+                            sbPrint(newS,3);
+                          }
+                          break;
+                        }
+                        
+                       
+                        
+                    
+                }
+            }
+        }
+    }
+    /*Start with columns*/
+    findCount = 0;
+    for(i=0;i<9;i++)
+    {
+        for(j=0;j<colIndex[i][0];j++)
+        {
+            if(posBlanks[colIndex[i][j]][0]==2)
+            {
+                pair[0] = posBlanks[colIndex[i][j]][1];
+                pair[1] = posBlanks[colIndex[i][j]][2];
+                pindex[0] = colIndex[i][j];
+                for(k=j+1;k<colIndex[i][0];k++)
+                {
+                    
+                        if(posBlanks[colIndex[i][k]][0]==2 && posBlanks[colIndex[i][k]][1]==pair[0] && posBlanks[colIndex[i][k]][2]==pair[1])
+                        {
+                          pindex[1] = colIndex[i][k];
+                          hit += colPurge(i,pindex[0],pindex[1],pair[0],pair[1]);
+                            if(hit>0)
+                            {                            
+                          sprintf(newS,"%d Col %d Pair %d,%d\n",++findCount,i,pair[0],pair[1]);
+                            sbPrint(newS,3);
+                            }
+                          break;
+                        }
+                        
+                       
+                        
+                    
+                }
+            }
+        }
+    }
+    /*Start with cells*/
+    findCount = 0;
+    for(i=0;i<9;i++)
+    {
+        for(j=0;j<celIndex[i][0];j++)
+        {
+            if(posBlanks[celIndex[i][j]][0]==2)
+            {
+                pair[0] = posBlanks[celIndex[i][j]][1];
+                pair[1] = posBlanks[celIndex[i][j]][2];
+                pindex[0] = celIndex[i][j];
+                for(k=j+1;k<celIndex[i][0];k++)
+                {
+                    
+                        if(posBlanks[celIndex[i][k]][0]==2 && posBlanks[celIndex[i][k]][1]==pair[0] && posBlanks[celIndex[i][k]][2]==pair[1])
+                        {
+                          pindex[1] = celIndex[i][k];
+                          hit += celPurge(i,pindex[0],pindex[1],pair[0],pair[1]);
+                          sprintf(newS,"%d Cell %d Pair %d,%d\n",findCount,i,pair[0],pair[1]);
+                            sbPrint(newS,3);
+                          break;
+                        }
+                        
+                       
+                        
+                    
+                }
+            }
+        }
+    }
     return hit;
 }
 /* void showComp()*/
