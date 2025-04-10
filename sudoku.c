@@ -504,7 +504,7 @@ stlp:
     sbPrint("",2);
     vals += hiddenSingle();
     sbPrint("",3);
-   /* vals += nakedPair(); */
+    vals += nakedPair(); 
     
     showComp();
     setCursorXY(4,1);
