@@ -211,7 +211,7 @@ void splash()
     setCursorXY(1,24);
     printf("Sudoku Solver by Nathanael Nunes\n");
     setCursorXY(2,28);
-    printf("V1.2 build April 08 2025\n");
+    printf("V1.2 build April 10 2025\n");
 
 }
 /* void initLookup()*/
@@ -838,6 +838,10 @@ char pidex,val;
             }
          
             /* decrease possiblities count*/
+            #ifdef DEBUG
+            sprintf(newS,"Purge %d from %d",val,blanks[pidex+1]);
+            swPrint(newS);
+            #endif
             posBlanks[pidex][0]--;
             return 1;
         }
@@ -916,6 +920,9 @@ char nakedPair()
     char pindex[2];
     hit = 0;
     /*Start with rows*/
+    #ifdef DEBUG
+    swClear();
+    #endif
     for(i=0;i<9;i++)
     {
         for(j=1;j<=rowIndex[i][0];j++)
@@ -948,6 +955,9 @@ char nakedPair()
         }
     }
     /*Start with columns*/
+    #ifdef DEBUG
+    swClear();
+    #endif
     for(i=0;i<9;i++)
     {
         for(j=1;j<=colIndex[i][0];j++)
@@ -981,6 +991,9 @@ char nakedPair()
         }
     }
     /*Start with cells*/
+    #ifdef DEBUG
+    swClear();
+    #endif
     for(i=0;i<9;i++)
     {
         for(j=1;j<=celIndex[i][0];j++)

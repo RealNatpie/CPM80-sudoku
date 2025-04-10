@@ -19,3 +19,5 @@ Bugfixes and Updates
 Known Issues
 
 * The simplify phase now takes longer to run. This this is helpful in puzzles with many blanks, but puzzles with fewer blanks may solve faster with bruit force approach.
+
+* Some puzzles are still resistance to burit force solving
