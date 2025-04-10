@@ -113,8 +113,8 @@ void main()
     /*Detect early solve*/
     if(blanks[0]==0)
     {
-        setCursorXY(4,1);
-        drawPuzzl8(0);
+        /*setCursorXY(4,1);
+        drawPuzzl8(0);*/
         setCursorXY(21,1);
         exit(0);
     }
@@ -123,6 +123,9 @@ void main()
     optOrder();
     /*Start Bruit force solving*/
     swPrint("Begining bruit force solver");
+    sbPrint(" ",1);
+    sbPrint(" ",2);
+    sbPrint(" ",3);
     if (solve() == 1)
     {
         setCursorXY(4,1);
@@ -131,7 +134,8 @@ void main()
     }
     else
     {
-        printf("No soultion\n");
+        swPrint("No solution found");
+        setCursorXY(21,1);
     }
 }
 void swPrint(st)
@@ -499,12 +503,11 @@ void simplify()
 stlp:
   /*findPosible(); */
     vals = 0;
-    sbPrint("",1);
     vals += nakedSingle();
-    sbPrint("",2);
-    vals += hiddenSingle();
-    sbPrint("",3);
-    vals += nakedPair(); 
+    if(blanks[0]>0)
+        vals += hiddenSingle();
+    if(blanks[0]>0)
+        vals += nakedPair(); 
     
     showComp();
     setCursorXY(4,1);
@@ -594,7 +597,7 @@ char nakedSingle()
         {
             
             /*puzzle[blanks[i + 1]] = posBlanks[i][1];*/
-            sprintf(newS, "Naked single Row %d Col %d Value %d\n", AddRow[blanks[i]] , AddCol[blanks[i]] , posBlanks[i][1]);
+            sprintf(newS, "Naked single Row %d Col %d Value %d\n", AddRow[blanks[i+1]] , AddCol[blanks[i+1]] , posBlanks[i][1]);
             sbPrint(newS,1);
             fillBlank(i,posBlanks[i][1]);
             i=0;
@@ -716,97 +719,6 @@ char hiddenSingle()
         }
        
     }
-    /*
-    for (row = 0; row < 9; row++)
-    {
-        setmem(poscnt,9,0);
-        for(cell = 0; cell < 9;cell++)
-        {
-            if(puzzle[rowAdds[row][cell]]==0)
-            {
-                for(val=1;val<10;val++)
-                {
-                    
-                    if(testAdr(rowAdds[row][cell],val)>0)
-                    {
-                        poscnt[val-1]++;
-                        pos[val-1] = rowAdds[row][cell];
-                    }
-                }
-            }
-        }
-        for(cell=0;cell<9;cell++)
-        {
-            if(poscnt[cell]==1)
-            {
-              
-                sprintf(newS,"Hidden single Row %d Col %d Value %d",row,cell,poscnt[cell]);
-                sbPrint(newS,2);
-                adrFillBlank(pos[cell],cell+1);
-                hit = 1;
-            }
-        }
-    }
-    for(col=0;col<9;col++)
-    {
-        setmem(poscnt,9,0);
-        for(cell=0;cell<9;cell++)
-        {
-            if(puzzle[colAdds[col][cell]]==0)
-            {
-                for(val=1;val<10;val++)
-                {
-                    if(testAdr(colAdds[col][cell],val)>0)
-                    {
-                        poscnt[val-1]++;
-                        pos[val-1] = colAdds[col][cell];
-                    }
-                }
-            }
-        }
-        for(cell=0;cell<9;cell++)
-        {
-            if(poscnt[cell]==1)
-            {
-                
-                adrFillBlank(pos[cell],cell+1);
-                hit = 1;
-            }
-        }
-    }
-    for(sell=0;sell<9;sell++)
-    {
-        setmem(poscnt,9,0);
-        for(cell=0;cell<9;cell++)
-        {
-            if(puzzle[celAdds[sell][cell]]==0)
-            {
-                for(val=1;val<10;val++)
-                {
-                    if(testAdr(celAdds[sell][cell],val)>0)
-                    {
-                        poscnt[val-1]++;
-                        pos[val-1] = celAdds[sell][cell];
-                    }
-                }
-            }
-        }
-        for(cell=0;cell<9;cell++)
-        {
-            if(poscnt[cell]==1)
-            {
-               
-                adrFillBlank(pos[cell],cell+1);
-                hit = 1;
-            }
-        }
-    }
-    */
-    /*if(hit!=0)
-    {
-        findBlanks();
-        findPosible();
-    }*/
     return hit;
 }
 /* char posPurge()*/
